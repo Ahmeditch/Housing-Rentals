@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
+const bcrypt = require('bcrypt');
+const Config = require('../config/dev');
 exports.auth = function(req, res) {
     const email = req.body.email;
     const password = req.body.password;
@@ -16,12 +16,11 @@ exports.auth = function(req, res) {
         if (!user) {
             return res.status(404).json({'message': `No user exists with email: ${email}`});
         }
-        console.log(user.hasSamePassword(password));
-            if (user.hasSamePassword(password)) {
+            if (bcrypt.compare(password, user.password)) {
                 const token = jwt.sign({
                     userId: user.id,
                     username: user.username
-                }, 'secret', {expiresIn: '1h'});
+                }, Config.Secret, {expiresIn: '1h'});
                 return res.json({
                     token
                 });
@@ -96,6 +95,6 @@ exports.authMiddleware = function(req, res, next) {
 }
 
 function parseToken(token) {
-    console.log(jwt.verify(token.split(' ')[1], 'secret'));
-    return jwt.verify(token.split(' ')[1], 'secret');
+    console.log(jwt.verify(token.split(' ')[1], Config.Secret));
+    return jwt.verify(token.split(' ')[1], Config.Secret);
 }
